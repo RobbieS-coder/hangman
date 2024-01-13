@@ -1,9 +1,18 @@
 class Game
-  def initialize
-    @word = Word.new
-  end
+	def game
+		loop do
+  	  @word = Word.new
+			round
+			sleep(2)
+			play_again = ask_to_play_again
+			break if play_again == 'n'
+		end
+		puts 'Thank you for playing!'
+	end
 
-  def play
+  private
+
+  def round
     guesses = []
     incorrect_guesses = []
     chances = 7
@@ -22,8 +31,6 @@ class Game
     display_game_state(incorrect_guesses, chances)
     display_game_result
   end
-
-  private
 
   def display_game_state(incorrect_guesses, chances)
     puts "\n#{@word}"
@@ -45,11 +52,21 @@ class Game
 
   def display_game_result
     if @word.solved?
-      puts 'Well done! You guessed the right word!'
+      puts "\nWell done! You guessed the right word!"
     else
-      puts "Bad luck! The word was #{@word}."
+      puts "\nBad luck! The word was #{@word}."
     end
   end
+
+	def ask_to_play_again
+		puts "\nDo you want to play again? (y/n)"
+		loop do
+			play_again = gets.chomp.downcase
+			return play_again if ['y', 'n'].include?(play_again)
+
+			puts "Invalid input. Please enter 'y' for yes or 'n' for no."
+		end
+	end
 end
 
 class Word
@@ -107,4 +124,4 @@ class UserInput
   end
 end
 
-Game.new.play
+Game.new.game
