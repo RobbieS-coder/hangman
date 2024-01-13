@@ -35,8 +35,8 @@ class Game
     guess = UserInput.get_single_letter_guess
 
     loop do
-      break if !guesses.include?(guess)
-      puts 'Invalid input. Please guess a single letter that you have not already guessed.'
+      break unless guesses.include?(guess)
+      puts 'Invalid input. Please guess something you have not already guessed.'
       guess = UserInput.get_single_letter_guess
     end
 
