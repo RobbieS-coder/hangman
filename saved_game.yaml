@@ -1,0 +1,5 @@
+--- !ruby/object:Game
+word: !ruby/object:Word
+  word: APPLIANCE
+  guessed_word: A____A__E
+  chances: 5
