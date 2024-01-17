@@ -1,5 +1,3 @@
-require 'yaml'
-
 class Game
 	def game
 		loop do
@@ -41,38 +39,14 @@ class Game
   end
 
   def get_valid_guess(guesses)
-		guess = gets.chomp.upcase
+    puts 'Enter your guess:'
+    guess = gets.chomp.upcase
 
     loop do
-			save_game if guess == 'SAVE'
-      break if guess.match?(/[A-Z]/) && guess.length == 1 && !guesses.include?(guess)
-      puts 'Invalid input. Please guess a single letter that you have not already guessed.'
+      return guess if guess.match?(/[A-Z]/) && guess.length == 1 && !guesses.include?(guess)
+      puts 'Invalid input. Please enter one letter you have not already guessed.'
       guess = gets.chomp.upcase
     end
-
-    guess
-  end
-
-	def save_game
-    serialized_game = YAML.dump(self)
-
-		if File.exist?('saved_game.yaml')
-			puts 'Are you sure you want to overwrite save data? (y/n)'
-			continue = gets.chomp.downcase
-
-			loop do
-				break if ['y', 'n'].include?(continue)
-
-				puts "Invalid input. Please enter 'y' for yes or 'n' for no."
-				continue = gets.chomp.downcase
-			end
-
-			return if continue == 'n'
-		end
-
-    File.open('saved_game.yaml', 'w') { |file| file.write(serialized_game) }
-    puts 'Game saved successfully!'
-		exit
   end
 
   def display_game_result

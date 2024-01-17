@@ -1,5 +1,16 @@
---- !ruby/object:Game
+--- !ruby/object:Round
 word: !ruby/object:Word
-  word: APPLIANCE
-  guessed_word: A____A__E
-  chances: 5
+  word: CRITERION
+  guessed_word: _R__ER___
+  chances: 4
+guesses:
+- E
+- A
+- B
+- S
+- R
+incorrect_guesses:
+- A
+- B
+- S
+chances: 4
