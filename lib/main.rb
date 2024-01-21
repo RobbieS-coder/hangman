@@ -1,7 +1,10 @@
+require 'yaml'
+require 'pry-byebug'
+
 class Game
 	def game
 		loop do
-			@round = Round.new
+			@round = load_or_new_game
 			@round.play
 			sleep(1.5)
 			play_again = ask_to_play_again
@@ -11,6 +14,24 @@ class Game
 	end
 
 	private
+
+	def load_or_new_game
+		puts "\nDo you want to load a saved game or start a new one? (l/n)"
+		choice = gets.chomp.downcase
+		loop do
+			break if ['l', 'n'].include?(choice)
+
+			puts "Invalid input. Please enter 'l' for load or 'n' for new."
+			choice = gets.chomp.downcase
+		end
+
+		if choice == 'l'
+			return Round.from_yaml
+		else
+			puts 'No save data found. Starting new game.'
+			return Round.new
+		end
+	end
 
 	def ask_to_play_again
 		puts "\nDo you want to play again? (y/n)"
@@ -24,11 +45,11 @@ class Game
 end
 
 class Round
-	def initialize
-		@word = Word.new
-		@guesses = []
-		@incorrect_guesses = []
-		@chances = 7
+	def initialize(word = Word.new, guesses = [], incorrect_guesses = [], chances = 7)
+		@word = word
+		@guesses = guesses
+		@incorrect_guesses = incorrect_guesses
+		@chances = chances
 	end
 
 	def play
@@ -47,6 +68,8 @@ class Round
 		display_game_result
 	end
 
+	private
+
 	def display_game_state
 		puts "\n#{@word}"
 		puts "\nIncorrect guesses: #{@incorrect_guesses.join(' ')}"
@@ -58,6 +81,7 @@ class Round
 		guess = gets.chomp.upcase
 
 		loop do
+			to_yaml if guess == 'SAVE'
 			return guess if guess.match?(/[A-Z]/) && guess.length == 1 && !@guesses.include?(guess)
 			puts 'Invalid input. Please enter one letter you have not already guessed.'
 			guess = gets.chomp.upcase
@@ -71,12 +95,42 @@ class Round
 			puts "\nBad luck! The word was #{@word}."
 		end
 	end
+
+	def to_yaml
+		dump = YAML.dump ({word: {word: @word.word,
+			guessed_word: @word.guessed_word,
+			chances: @word.chances},
+		guesses: @guesses,
+		incorrect_guesses: @incorrect_guesses,
+		chances: @chances
+    })
+		File.open('saved_game.yaml', 'w') { |file| file.write dump }
+		puts "\nGame Saved!"
+		exit
+	end
+
+	def self.from_yaml
+		file = File.open('saved_game.yaml', 'r')
+		data = File.read(file)
+		saved_game = YAML.load(data)
+		word_data = saved_game[:word]
+
+		word = Word.new(word_data[:word], word_data[:guessed_word], word_data[:chances])
+		self.new(word, saved_game[:guesses], saved_game[:incorrect_guesses], saved_game[:chances])
+	end
 end
 
 class Word
-	def initialize
-		choose_word
-		@chances = 7
+	attr_reader :word, :guessed_word, :chances
+
+	def initialize(word = nil, guessed_word = nil, chances = 7)
+		if word && guessed_word
+			@word = word
+			@guessed_word = guessed_word
+		else
+			choose_word
+		end
+		@chances = chances
 	end
 
 	def to_s

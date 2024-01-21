@@ -1,16 +1,21 @@
---- !ruby/object:Round
-word: !ruby/object:Word
-  word: CRITERION
-  guessed_word: _R__ER___
-  chances: 4
-guesses:
+---
+:word:
+  :word: ABSTRACTS
+  :guessed_word: A__TRA_T_
+  :chances: 2
+:guesses:
 - E
 - A
-- B
-- S
 - R
-incorrect_guesses:
-- A
-- B
-- S
-chances: 4
+- L
+- M
+- D
+- F
+- T
+:incorrect_guesses:
+- E
+- L
+- M
+- D
+- F
+:chances: 2
