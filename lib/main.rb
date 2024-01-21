@@ -1,5 +1,4 @@
 require 'yaml'
-require 'pry-byebug'
 
 class Game
 	def game
@@ -28,7 +27,6 @@ class Game
 		if choice == 'l'
 			return Round.from_yaml
 		else
-			puts 'No save data found. Starting new game.'
 			return Round.new
 		end
 	end
@@ -104,18 +102,38 @@ class Round
 		incorrect_guesses: @incorrect_guesses,
 		chances: @chances
     })
+
+		puts "\nSave file detected. Are you sure you want to play overwrite save data? (y/n)"
+		response = gets.chomp.downcase
+
+		loop do
+			break if ['y', 'n'].include?(response)
+			puts "Invalid input. Please enter 'y' for yes or 'n' for no."
+			response = gets.chomp.downcase
+		end
+
+		if response == 'n'
+			puts 'Exiting saving.'
+			return
+		end
+
 		File.open('saved_game.yaml', 'w') { |file| file.write dump }
 		puts "\nGame Saved!"
 		exit
 	end
 
 	def self.from_yaml
+		unless File.exist?('saved_game.yaml')
+			puts 'No save data found. Starting new game.'
+			return self.new
+		end
 		file = File.open('saved_game.yaml', 'r')
 		data = File.read(file)
 		saved_game = YAML.load(data)
 		word_data = saved_game[:word]
 
 		word = Word.new(word_data[:word], word_data[:guessed_word], word_data[:chances])
+		puts 'Successfully loaded data!'
 		self.new(word, saved_game[:guesses], saved_game[:incorrect_guesses], saved_game[:chances])
 	end
 end
