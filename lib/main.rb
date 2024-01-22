@@ -1,5 +1,3 @@
-require 'yaml'
-
 class Game
 	def game
 		loop do
@@ -25,7 +23,7 @@ class Game
 		end
 
 		if choice == 'l'
-			return Round.from_yaml
+			return Round.from_marshal
 		else
 			return Round.new
 		end
@@ -79,7 +77,7 @@ class Round
 		guess = gets.chomp.upcase
 
 		loop do
-			to_yaml if guess == 'SAVE'
+			to_marshal if guess == 'SAVE'
 			return guess if guess.match?(/[A-Z]/) && guess.length == 1 && !@guesses.include?(guess)
 			puts 'Invalid input. Please enter one letter you have not already guessed.'
 			guess = gets.chomp.upcase
@@ -104,40 +102,42 @@ class Round
 		end
 	end
 
-	def to_yaml
+	def to_marshal
 		word = @word.to_hash
 
-		dump = YAML.dump ({word: word,
+		dump = Marshal.dump ({word: word,
 		guesses: @guesses,
 		incorrect_guesses: @incorrect_guesses,
 		chances: @chances
     })
 
-		response = ask_to_overwrite_save_data
+		if File.exist?('saved_game.marshal')
+			response = ask_to_overwrite_save_data
 
-		if response == 'n'
-			puts 'Exiting saving.'
-			return
+			if response == 'n'
+				puts 'Exiting saving.'
+				return
+			end
 		end
 
-		File.open('saved_game.yaml', 'w') { |file| file.write dump }
+		File.open('saved_game.marshal', 'w') { |file| file.write dump }
 		puts "\nGame Saved!"
 		exit
 	end
 
-	def self.from_yaml
-		unless File.exist?('saved_game.yaml')
+	def self.from_marshal
+		unless File.exist?('saved_game.marshal')
 			puts 'No save data found. Starting new game.'
 			return self.new
 		end
-		file = File.open('saved_game.yaml', 'r')
+		file = File.open('saved_game.marshal', 'r')
 		data = File.read(file)
-		saved_game = YAML.load(data)
+		saved_game = Marshal.load(data)
 
 		word_data = saved_game[:word]
 		puts 'Successfully loaded data!'
 
-		word = Word.from_yaml(word_data)
+		word = Word.from_marshal(word_data)
 		self.new(word, saved_game[:guesses], saved_game[:incorrect_guesses], saved_game[:chances])
 	end
 end
@@ -193,7 +193,7 @@ class Word
 		@guessed_word = '_' * @word.length
 	end
 
-	def self.from_yaml(data)
+	def self.from_marshal(data)
 		self.new(data[:word], data[:guessed_word], data[:chances])
 	end
 end
