@@ -94,23 +94,26 @@ class Round
 		end
 	end
 
+	def ask_to_overwrite_save_data
+		puts "\nSave file detected. Are you sure you want to play overwrite save data? (y/n)"
+
+		loop do
+			response = gets.chomp.downcase
+			return response if ['y', 'n'].include?(response)
+			puts "Invalid input. Please enter 'y' for yes or 'n' for no."
+		end
+	end
+
 	def to_yaml
-		dump = YAML.dump ({word: {word: @word.word,
-			guessed_word: @word.guessed_word,
-			chances: @word.chances},
+		word = @word.to_hash
+
+		dump = YAML.dump ({word: word,
 		guesses: @guesses,
 		incorrect_guesses: @incorrect_guesses,
 		chances: @chances
     })
 
-		puts "\nSave file detected. Are you sure you want to play overwrite save data? (y/n)"
-		response = gets.chomp.downcase
-
-		loop do
-			break if ['y', 'n'].include?(response)
-			puts "Invalid input. Please enter 'y' for yes or 'n' for no."
-			response = gets.chomp.downcase
-		end
+		response = ask_to_overwrite_save_data
 
 		if response == 'n'
 			puts 'Exiting saving.'
@@ -130,17 +133,16 @@ class Round
 		file = File.open('saved_game.yaml', 'r')
 		data = File.read(file)
 		saved_game = YAML.load(data)
-		word_data = saved_game[:word]
 
-		word = Word.new(word_data[:word], word_data[:guessed_word], word_data[:chances])
+		word_data = saved_game[:word]
 		puts 'Successfully loaded data!'
+
+		word = Word.from_yaml(word_data)
 		self.new(word, saved_game[:guesses], saved_game[:incorrect_guesses], saved_game[:chances])
 	end
 end
 
 class Word
-	attr_reader :word, :guessed_word, :chances
-
 	def initialize(word = nil, guessed_word = nil, chances = 7)
 		if word && guessed_word
 			@word = word
@@ -169,6 +171,12 @@ class Word
 		!@guessed_word.include?('_')
 	end
 
+	def to_hash
+		{word: @word,
+			guessed_word: @guessed_word,
+			chances: @chances}
+	end
+
 	private
 
 	def choose_word
@@ -183,6 +191,10 @@ class Word
 
 		@word = words.sample.upcase
 		@guessed_word = '_' * @word.length
+	end
+
+	def self.from_yaml(data)
+		self.new(data[:word], data[:guessed_word], data[:chances])
 	end
 end
 
